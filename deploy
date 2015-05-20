@@ -1,0 +1,27 @@
+#!/bin/bash
+
+if [ $# -lt 2 ]; then
+    echo 'deploy <id> <version>'
+    echo 'deploy maven-shade-plugin 2.3'
+    exit 0
+fi
+
+mkdir -p target/plugin
+mvn deploy -DaltDeploymentRepository=internal.repo::default::file://$PWD/target/plugin/
+
+srcdir=$PWD/target/plugin
+
+dir=`mktemp -d`
+trap 'rm -rf "$dir"' EXIT
+echo $dir
+
+cd $dir
+git clone git@github.com:intelie/maven-public
+cd maven-public
+
+cp -r $srcdir/* .
+
+git add .
+git commit -am "Plugin: $1 version $2"
+git push
+
